@@ -1,0 +1,17 @@
+# 本机状态与测试缓存不进入共享仓库
+.local/
+.assistant-workflow/
+__pycache__/
+*.pyc
+.DS_Store
+# Accidental local exports and credentials
+.env
+.env.*
+auth.json
+config.toml
+sessions/
+logs/
+*.sqlite
+*.sqlite3
+*.db
+*.zip

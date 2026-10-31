@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "device_id": "local-device",
+  "execution_model": "gpt-6.1-sol",
+  "execution_effort": "xhigh",
+  "language": "中文",
+  "workspace_root": "由安装工具填写本机真实目录",
+  "source_directory": "由安装工具填写规则包实际目录",
+  "main_thread_id": null,
+  "host_id": null,
+  "timezone": null,
+  "scheduler_owner": false,
+  "capabilities": {
+    "independent_visible_threads": null,
+    "quiet_completion_wakeup": null,
+    "execution_model_available": null,
+    "execution_effort_available": null,
+    "effective_approval_policy": null,
+    "effective_sandbox_mode": null,
+    "verified_at": null
+  }
+}
