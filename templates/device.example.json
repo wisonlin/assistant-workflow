@@ -18,5 +18,6 @@
     "effective_approval_policy": null,
     "effective_sandbox_mode": null,
     "verified_at": null
-  }
+  },
+  "test_device_policy": "simulator-only"
 }

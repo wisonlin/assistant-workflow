@@ -1,7 +1,9 @@
 {
   "schema_version": 1,
-  "scope": "temporary workspaces and local Git-only two-clone simulation",
-  "tests_run": 19,
+  "version": "1.1.0",
+  "verified_at": "2026-11-02",
+  "scope": "temporary workspaces, real 1.0.0 CLI migration and local Git-only two-clone simulation",
+  "tests_run": 22,
   "passed": true,
   "cases": [
     "test_concurrent_edit_after_preview_is_preserved",
@@ -9,7 +11,10 @@
     "test_entry_change_requires_migration",
     "test_first_install_preserves_original_and_backup",
     "test_generated_entry_contains_no_local_identity_or_private_notes",
+    "test_invalid_test_policy_is_rejected_before_writes",
+    "test_legacy_config_upgrade_adds_simulator_default_without_losing_private_fields",
     "test_local_state_ignored_in_unrelated_repository",
+    "test_local_test_policy_change_updates_entry_and_stays_idempotent",
     "test_managed_edit_is_rejected_without_overwrite",
     "test_missing_state_or_marker_is_rejected",
     "test_model_parameters_and_unknown_fields_are_local",
@@ -24,24 +29,41 @@
     "test_unversioned_change_and_downgrade_rejected",
     "test_upgrade_preserves_prefix_suffix_and_local_notes"
   ],
+  "migration": {
+    "baseline_version": "1.0.0",
+    "candidate_version": "1.1.0",
+    "passed": true,
+    "entry_bytes": 10914,
+    "checks": [
+      "real baseline CLI install",
+      "preview writes nothing",
+      "active override upgrade",
+      "original CRLF prefix and suffix preserved",
+      "inactive AGENTS unchanged",
+      "private fields model and scheduler choice preserved",
+      "simulator-only default added",
+      "private notes remain local",
+      "repeat byte-stable",
+      "status leaves runtime unverified"
+    ]
+  },
   "privacy_static_scan": {
-    "files_checked": 13,
+    "files_checked": 15,
     "findings": 0,
-    "note": "Supplementary pattern scan; independent publication review remains required."
+    "note": "Supplementary pattern scan only; independent publication review remains required."
   },
   "verified": [
-    "preview without writes",
-    "existing content and CRLF preserved",
-    "repeat installation stable",
-    "versioned upgrade preserves original project rules",
-    "private paths, hostname and local notes stay out of generated entry",
-    "managed edits and empty-override shadowing stop safely",
-    "local state ignored without relying on global Git excludes",
-    "two local clones fast-forward a shared improvement while preserving private local text"
+    "first install and repeat",
+    "versioned upgrade preserving original rules, private model choice and unknown local fields",
+    "invalid test policy refuses before writes",
+    "managed edits and state conflicts stop without overwrite",
+    "local state stays ignored in Git",
+    "two local clones safely update generic rules"
   ],
   "not_verified": [
-    "a second physical computer",
+    "a second physical or company computer",
     "actual client instruction loading after installation",
+    "Windows or Linux runtime execution",
     "target model and permission availability",
     "automatic cross-machine sync or hidden wakeup"
   ]

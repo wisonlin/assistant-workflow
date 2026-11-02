@@ -187,6 +187,54 @@ class InstallationTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertEqual(value['status'], 'update_available')
 
+    def test_legacy_config_upgrade_adds_simulator_default_without_losing_private_fields(self):
+        self.install()
+        local = self.root / '.assistant-workflow' / 'local.json'
+        cfg = json.loads(local.read_text())
+        cfg.pop('test_device_policy', None)
+        cfg.update(execution_model='local-model', scheduler_owner=True,
+                   company_private={'keep': 'local'})
+        local.write_text(json.dumps(cfg))
+        self.upgrade()
+        (self.source / 'rules' / 'COMMON.md').write_text('Testing: {{TEST_DEVICE_POLICY}}\n')
+        self.install()
+        stored = json.loads(local.read_text())
+        self.assertEqual(stored['test_device_policy'], 'simulator-only')
+        self.assertEqual(stored['company_private'], {'keep': 'local'})
+        self.assertEqual(stored['execution_model'], 'local-model')
+        self.assertTrue(stored['scheduler_owner'])
+        self.assertIn(w.TEST_DEVICE_POLICIES['simulator-only'], (self.root / 'AGENTS.md').read_text())
+        self.assertNotIn('company_private', (self.root / 'AGENTS.md').read_text())
+        self.assertFalse(self.install()['changed'])
+
+    def test_local_test_policy_change_updates_entry_and_stays_idempotent(self):
+        (self.source / 'rules' / 'COMMON.md').write_text('Testing: {{TEST_DEVICE_POLICY}}\n')
+        self.install()
+        local = self.root / '.assistant-workflow' / 'local.json'
+        cfg = json.loads(local.read_text())
+        cfg['test_device_policy'] = 'task-authorized'
+        local.write_text(json.dumps(cfg))
+        value, code = w.status(self.root, self.source)
+        self.assertEqual((value['status'], code), ('update_available', 1))
+        self.assertTrue(self.install()['changed'])
+        self.assertIn(w.TEST_DEVICE_POLICIES['task-authorized'], (self.root / 'AGENTS.md').read_text())
+        self.assertFalse(self.install()['changed'])
+
+    def test_invalid_test_policy_is_rejected_before_writes(self):
+        local = self.root / '.assistant-workflow'
+        local.mkdir()
+        cfg = local / 'local.json'
+        entry = self.root / 'AGENTS.md'
+        entry.write_text('Existing company rules\n')
+        for value in ['all-devices', None, {'device': 'physical'}]:
+            cfg.write_text(json.dumps({'test_device_policy': value}))
+            before = cfg.read_bytes()
+            with self.assertRaisesRegex(w.WorkflowError, 'test_device_policy'):
+                self.install()
+            self.assertEqual(cfg.read_bytes(), before)
+            self.assertEqual(entry.read_text(), 'Existing company rules\n')
+            self.assertEqual(sorted(p.name for p in local.iterdir()), ['local.json'])
+
     @unittest.skipUnless(shutil.which('git'), 'Git unavailable')
     def test_local_state_ignored_in_unrelated_repository(self):
         subprocess.run(['git', 'init', '-q', str(self.root)], check=True)

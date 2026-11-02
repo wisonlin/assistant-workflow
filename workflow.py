@@ -15,6 +15,10 @@ from pathlib import Path
 BEGIN = '<!-- assistant-workflow:begin -->'
 END = '<!-- assistant-workflow:end -->'
 SOURCE = Path(__file__).resolve().parent
+TEST_DEVICE_POLICIES = {
+    'simulator-only': '只使用模拟器，不使用用户真机；只能真机验证的项目报告未验证',
+    'task-authorized': '默认使用模拟器；真机测试须另有本次任务的明确用户授权',
+}
 
 
 class WorkflowError(Exception):
@@ -95,6 +99,7 @@ def local_config(root, source):
         'execution_model': 'gpt-6.1-sol',
         'execution_effort': 'xhigh',
         'language': '中文',
+        'test_device_policy': 'simulator-only',
         'main_thread_id': None,
         'host_id': None,
         'timezone': None,
@@ -107,6 +112,8 @@ def local_config(root, source):
     for key in ('device_id', 'execution_model', 'execution_effort'):
         scalar(defaults[key], key, identifier=True)
     scalar(defaults['language'], 'language')
+    if not isinstance(defaults['test_device_policy'], str) or defaults['test_device_policy'] not in TEST_DEVICE_POLICIES:
+        raise WorkflowError('Invalid local test_device_policy')
     for key in ('workspace_root', 'source_directory'):
         scalar(defaults[key], key)
     return defaults
@@ -117,6 +124,7 @@ def render_block(root, source, version, rules, rules_hash, cfg):
         '{{EXECUTION_MODEL}}': cfg['execution_model'],
         '{{EXECUTION_EFFORT}}': cfg['execution_effort'],
         '{{LANGUAGE}}': cfg['language'],
+        '{{TEST_DEVICE_POLICY}}': TEST_DEVICE_POLICIES[cfg['test_device_policy']],
     }
     for token, value in replacements.items():
         rules = rules.replace(token, value)
